@@ -276,7 +276,6 @@ public class Core {
         phistream.putNextEntry(new ZipEntry(Parse.get_file_name(config.getBackground())));
         phistream.write(buf1);
         phistream.closeEntry();
-        config.bkg_stream.close();
 
         byte[] buf2 = new byte[config.song_stream.available()];
         config.song_stream.read(buf2);
@@ -284,7 +283,6 @@ public class Core {
         phistream.write(buf2);
         phistream.closeEntry();
         phistream.close();
-        config.song_stream.close();
 
         byte[] ret = baos.toByteArray();
         baos.close();
