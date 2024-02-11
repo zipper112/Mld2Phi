@@ -73,18 +73,21 @@ public class Config {
     public String toString() {
         return "轨道个数: " + column_number +
                 "\n音符总个数: " + note_number +
-                "谱师: " + charter +
-                "等级提示" + level +
-                "曲绘作者" + illustrator +
-                "谱面名称" + name +
-                "曲师" + composer +
-                "BPM: " + mainbpm[0] +
-                "偏移值: " + offset +
-                "基础流速: " + line_speed +
-                "线高度: " + line_y +
-                "LUCK: " + (note_luck ? "ON": "OFF") +
-                "FLIP: " + (note_flip ? "ON" : "OFF") +
-                "CONST: ";
+                "\n谱师: " + charter +
+                "\n等级提示: " + level +
+                "\n曲绘作者: " + illustrator +
+                "\n谱面名称: " + name +
+                "\n曲师" + composer +
+                "\nBPM: " + mainbpm[0] +
+                "\n偏移值: " + offset +
+                "\n基础流速: " + line_speed +
+                "\n线高度: " + line_y +
+                "\nLUCK: " + (note_luck ? "ON": "OFF") +
+                "\nFLIP: " + (note_flip ? "ON" : "OFF") +
+                "\nCONST: " + (note_cst ? "ON" : "OFF") +
+                "\n线透明度" + line_alpha +
+                "\n横向偏移" + line_x +
+                "\n旋转角度" + line_rotate;
     }
 
     public String getMly_chart_path() {
