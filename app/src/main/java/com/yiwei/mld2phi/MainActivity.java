@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
@@ -31,6 +32,10 @@ public  class MainActivity extends AppCompatActivity{
     final int MLD_REQUEST_MODE = 11451419;
     final int MUSIC_REQUEST_MODE = 99900011;
     final int PIC_REQUEST_MODE = 123123434;
+    final int SAVE_TO_LOCAL = 6523458;
+
+    String template;
+
     JSONObject mcjson;
 
 
@@ -74,9 +79,22 @@ public  class MainActivity extends AppCompatActivity{
                     config.setBackground(path);
                     picture.setText(tmp[tmp.length - 1]);
                     config.song_stream = get_stream(uri);
-                }
-            } catch (Exception e){
+                } else if (requestCode == SAVE_TO_LOCAL) {
 
+                    JSONObject phi = Core.generate(template, config, mcjson);
+//                Core.save("/storage/emulated/0/Download/test2.zip", phi, config);
+                    byte[] zip = Core.createZipBytes(phi, config);
+
+
+                    OutputStream outputStream = getContentResolver().openOutputStream(uri);
+                    if (outputStream != null) {
+                        outputStream.write(zip);
+                        outputStream.close();
+                    }
+                }
+
+            } catch (Exception e){
+                e.printStackTrace();
             }
             update_config();
         }
@@ -89,6 +107,7 @@ public  class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         try {
+            template = getTemplate();
             bind();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -129,31 +148,34 @@ public  class MainActivity extends AppCompatActivity{
         picture.setOnClickListener(v -> openfile(PIC_REQUEST_MODE));
         music.setOnClickListener(v -> openfile(MUSIC_REQUEST_MODE));
 
+        Button start_gen = findViewById(R.id.start_gen);
+        start_gen.setOnClickListener(v -> createFile("name.zip"));
+    }
+
+    public void createFile(String filename) {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_TITLE, filename);
+        startActivityForResult(intent, SAVE_TO_LOCAL);
+    }
+
+    public String getTemplate() throws IOException {
         AssetManager am = this.getAssets();
         InputStream is = am.open("template.json");
         byte [] buffer = new byte[is.available()];
         is.read(buffer);
         is.close();
-        String template = new String(buffer, StandardCharsets.UTF_8);
-
-        Button start_gen = findViewById(R.id.start_gen);
-        start_gen.setOnClickListener(v -> {
-            try {
-                JSONObject phi = Core.generate(template, config, mcjson);
-                Core.save("/storage/emulated/0/Download/test2.zip", phi, config);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return new String(buffer, StandardCharsets.UTF_8);
     }
+
     private void addCheckBoxListener(CheckBox cb, Consumer<Boolean> c){
         cb.setOnCheckedChangeListener((bv, ic) -> {
             c.accept(ic);
             update_config();
         });
     }
+
     private void addTextChangeListener(int id, Consumer<Editable> cons){
         ((EditText)findViewById(id)).addTextChangedListener(new TextWatcher() {
             @Override
@@ -171,6 +193,7 @@ public  class MainActivity extends AppCompatActivity{
             }
         });
     }
+
     private void update_config(){
         TextView tv = findViewById(R.id.information);
         tv.setText("信息: \n" + config.toString());

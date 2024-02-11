@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -237,6 +238,12 @@ public class Core {
      */
     public static void save(String path, JSONObject phijson, Config config) throws IOException {
 
+
+
+    }
+
+    public static byte[] createZipBytes(JSONObject phijson, Config config) throws IOException {
+
         String info = "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter\n";
         StringJoiner params = new StringJoiner(",");
         params.add(Parse.get_file_name(config.getName() + ".json"));
@@ -249,7 +256,13 @@ public class Core {
         params.add(config.getCharter());
         info += params.toString();
 
-        ZipOutputStream phistream = new ZipOutputStream(Files.newOutputStream(Paths.get(path)));
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+//        ZipOutputStream phistream = new ZipOutputStream(Files.newOutputStream(Paths.get(path)));
+        ZipOutputStream phistream = new ZipOutputStream(baos);
+
+
         phistream.putNextEntry(new ZipEntry("info.csv"));
         phistream.write(info.getBytes(StandardCharsets.UTF_8));
         phistream.closeEntry();
@@ -272,5 +285,10 @@ public class Core {
         phistream.closeEntry();
         phistream.close();
         config.song_stream.close();
+
+        byte[] ret = baos.toByteArray();
+        baos.close();
+
+        return ret;
     }
 }
