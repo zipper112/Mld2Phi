@@ -1,6 +1,7 @@
 package com.yiwei.mld2phi;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -13,8 +14,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -27,7 +28,6 @@ import java.util.function.Consumer;
 
 
 public  class MainActivity extends AppCompatActivity{
-    int request = 114514;
     Button mld, music, picture;
     final int MLD_REQUEST_MODE = 11451419;
     final int MUSIC_REQUEST_MODE = 99900011;
@@ -38,28 +38,31 @@ public  class MainActivity extends AppCompatActivity{
 
     JSONObject mcjson;
 
+    private int gen_count = 0;
+
+    public static Config config = new Config();
 
     private void openfile(int code){
         Intent i = new Intent(Intent.ACTION_GET_CONTENT);
         i.setType("*/*");
         i.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(i, code);
-
     }
 
     private InputStream get_stream(Uri path) throws FileNotFoundException {
         return getContentResolver().openInputStream(path);
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (data != null && resultCode == RESULT_OK){
-            Uri uri = data.getData();
-            String path = uri.getPath();
-            String [] tmp = path.split(File.separator);
             try {
+                Uri uri = data.getData();
+                String path = uri.getPath();
+                String [] tmp = path.split(File.separator);
+
                 if (requestCode == MLD_REQUEST_MODE) {
 
                     config.setMly_chart_path(path);
@@ -100,16 +103,29 @@ public  class MainActivity extends AppCompatActivity{
                         outputStream.write(zip);
                         outputStream.close();
                     }
+
+                    toast("生成成功" + (++ gen_count == 1 ? "" : "x" + gen_count) );
                 }
 
             } catch (Exception e){
-                e.printStackTrace();
+                errAlert(e.toString());
             }
             update_config();
         }
     }
 
-    public static Config config = new Config();
+
+    private void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+    }
+
+    private void errAlert(String msg) {
+        new AlertDialog.Builder(this)
+                .setTitle("错误提示")
+                .setMessage(msg)
+                .setPositiveButton("确定", null)
+                .create().show();
+    }
 
     @Override
     protected void onDestroy() {
@@ -140,7 +156,7 @@ public  class MainActivity extends AppCompatActivity{
             template = getTemplate();
             bind();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            errAlert(e.toString());
         }
     }
 
@@ -159,6 +175,7 @@ public  class MainActivity extends AppCompatActivity{
         addCheckBoxListener(cst, ic -> {
             config.setSpeed_change_with_bpm(ic);
             config.setSpeed_change_with_effect(ic);
+            config.setNote_cst(ic);
         });
         addCheckBoxListener(flip, ic -> {
             config.setNote_luck(false);
@@ -179,7 +196,17 @@ public  class MainActivity extends AppCompatActivity{
         music.setOnClickListener(v -> openfile(MUSIC_REQUEST_MODE));
 
         Button start_gen = findViewById(R.id.start_gen);
-        start_gen.setOnClickListener(v -> createFile("name.zip"));
+        start_gen.setOnClickListener(v -> {
+            if (config.getMly_chart_path().equals("")) {
+                errAlert("杂鱼! 没有选择谱面");
+            } else if (config.getSong().equals("")) {
+                errAlert("杂鱼! 没有选择音乐");
+            } else if (config.getBackground().equals("")) {
+                errAlert("杂鱼! 没有选择背景");
+            } else {
+                createFile(config.getName() + ".zip");
+            }
+        });
     }
 
     public void createFile(String filename) {
@@ -201,7 +228,11 @@ public  class MainActivity extends AppCompatActivity{
 
     private void addCheckBoxListener(CheckBox cb, Consumer<Boolean> c){
         cb.setOnCheckedChangeListener((bv, ic) -> {
-            c.accept(ic);
+            try {
+                c.accept(ic);
+            } catch (Exception e) {
+                errAlert(e.toString());
+            }
             update_config();
         });
     }
@@ -209,16 +240,17 @@ public  class MainActivity extends AppCompatActivity{
     private void addTextChangeListener(int id, Consumer<Editable> cons){
         ((EditText)findViewById(id)).addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
-                cons.accept(s);
+                try {
+                    cons.accept(s);
+                } catch (Exception e) {
+                    errAlert(e.toString());
+                }
+
                 update_config();
             }
         });

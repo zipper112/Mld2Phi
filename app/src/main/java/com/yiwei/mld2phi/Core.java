@@ -35,6 +35,7 @@ public class Core {
         }
         return ja;
     }
+
     private static JSONObject format_speed(float speed, JSONArray time) throws JSONException {
         time.put(0, time.getInt(0) + time.getInt(1) /  time.getInt(2));
         time.put(1, time.getInt(1) % time.getInt(2));
@@ -54,14 +55,6 @@ public class Core {
 
     public static JSONObject generate(String template, Config config, JSONObject mcsjson) throws JSONException {
         JSONObject phijson = new JSONObject(template);
-        if (config.getMly_chart_path().equals(""))
-            throw new IllegalArgumentException("错误：没有选择谱面");
-        if (config.getSong().equals("")){
-            throw new IllegalArgumentException("错误：没有音乐");
-        }
-        if (config.getBackground().equals("")){
-            throw new IllegalArgumentException("错误：没有背景图片");
-        }
         JSONObject meta = phijson.getJSONObject("META");
         meta.put("background", Parse.get_file_name(config.getBackground()));
         meta.put("charter", config.getCharter());
@@ -236,11 +229,6 @@ public class Core {
     ogg: # 音乐
     jpg: # 背景
      */
-    public static void save(String path, JSONObject phijson, Config config) throws IOException {
-
-
-
-    }
 
     public static byte[] createZipBytes(JSONObject phijson, Config config) throws IOException {
 
@@ -259,7 +247,6 @@ public class Core {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-//        ZipOutputStream phistream = new ZipOutputStream(Files.newOutputStream(Paths.get(path)));
         ZipOutputStream phistream = new ZipOutputStream(baos);
 
 
