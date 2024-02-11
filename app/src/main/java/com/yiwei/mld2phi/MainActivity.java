@@ -258,6 +258,6 @@ public  class MainActivity extends AppCompatActivity{
 
     private void update_config(){
         TextView tv = findViewById(R.id.information);
-        tv.setText("信息: \n" + config.toString());
+        tv.setText( "Original: IambicCave, ported by Zipper112(⑨) & whiterasbk\n\n" + "信息: \n" + config.toString());
     }
 }

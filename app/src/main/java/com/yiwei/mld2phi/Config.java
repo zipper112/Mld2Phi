@@ -71,7 +71,8 @@ public class Config {
 
     @Override
     public String toString() {
-        return "轨道个数: " + column_number +
+        return
+                "\n轨道个数: " + column_number +
                 "\n音符总个数: " + note_number +
                 "\n谱师: " + charter +
                 "\n等级提示: " + level +
