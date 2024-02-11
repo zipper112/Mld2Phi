@@ -85,7 +85,6 @@ public  class MainActivity extends AppCompatActivity{
 //                Core.save("/storage/emulated/0/Download/test2.zip", phi, config);
                     byte[] zip = Core.createZipBytes(phi, config);
 
-
                     OutputStream outputStream = getContentResolver().openOutputStream(uri);
                     if (outputStream != null) {
                         outputStream.write(zip);
