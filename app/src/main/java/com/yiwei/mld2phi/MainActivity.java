@@ -61,6 +61,7 @@ public  class MainActivity extends AppCompatActivity{
             String [] tmp = path.split(File.separator);
             try {
                 if (requestCode == MLD_REQUEST_MODE) {
+
                     config.setMly_chart_path(path);
                     mld.setText(tmp[tmp.length - 1]);
 
@@ -72,12 +73,22 @@ public  class MainActivity extends AppCompatActivity{
                     is.close();
                     Parse.ParseMC(config, mcjson);
                 } else if (requestCode == PIC_REQUEST_MODE) {
-                    config.setSong(path);
-                    music.setText(tmp[tmp.length - 1]);
-                    config.bkg_stream = get_stream(uri);
-                } else if (requestCode == MUSIC_REQUEST_MODE) {
+
+                    if (config.bkg_stream != null) {
+                        config.bkg_stream.close();
+                    }
+
                     config.setBackground(path);
                     picture.setText(tmp[tmp.length - 1]);
+                    config.bkg_stream = get_stream(uri);
+                } else if (requestCode == MUSIC_REQUEST_MODE) {
+
+                    if (config.song_stream != null) {
+                        config.song_stream.close();
+                    }
+
+                    config.setSong(path);
+                    music.setText(tmp[tmp.length - 1]);
                     config.song_stream = get_stream(uri);
                 } else if (requestCode == SAVE_TO_LOCAL) {
 
@@ -99,6 +110,27 @@ public  class MainActivity extends AppCompatActivity{
     }
 
     public static Config config = new Config();
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (config.song_stream != null) {
+            try {
+                config.song_stream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (config.bkg_stream != null) {
+            try {
+                config.bkg_stream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
