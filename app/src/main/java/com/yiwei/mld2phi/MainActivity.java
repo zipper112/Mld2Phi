@@ -71,14 +71,14 @@ public  class MainActivity extends AppCompatActivity{
                     mcjson = new JSONObject(content);
                     is.close();
                     Parse.ParseMC(config, mcjson);
-                } else if (requestCode == PIC_REQUEST_MODE) {
+                } else if (requestCode == MUSIC_REQUEST_MODE) {
                     config.setSong(path);
                     music.setText(tmp[tmp.length - 1]);
-                    config.bkg_stream = get_stream(uri);
-                } else if (requestCode == MUSIC_REQUEST_MODE) {
+                    config.song_stream = get_stream(uri);
+                } else if (requestCode == PIC_REQUEST_MODE) {
                     config.setBackground(path);
                     picture.setText(tmp[tmp.length - 1]);
-                    config.song_stream = get_stream(uri);
+                    config.bkg_stream = get_stream(uri);
                 } else if (requestCode == SAVE_TO_LOCAL) {
 
                     JSONObject phi = Core.generate(template, config, mcjson);
