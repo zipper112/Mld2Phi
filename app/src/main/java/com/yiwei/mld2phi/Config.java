@@ -62,44 +62,29 @@ public class Config {
     private String illustrator = "";
     private boolean note_flip = false;
     private boolean note_luck = false;
+    private boolean note_cst = false;
 
     private String mly_chart_path = "";
 
     public InputStream mld_char_stream, bkg_stream, song_stream;
 
+
     @Override
     public String toString() {
-        return "Config{" +
-                "\nmld_j=" + mld_j +
-                "\n, name='" + name + '\'' +
-                "\n, bpm=" + bpm +
-                "\n, mainbpm=" + Arrays.toString(mainbpm) +
-                "\n, offset=" + offset +
-                "\n, note_number=" + note_number +
-                "\n, special_note=" + special_note +
-                "\n, malodyid=" + malodyid +
-                "\n, column_number=" + column_number +
-                "\n, charter='" + charter + '\'' +
-                "\n, composer='" + composer + '\'' +
-                "\n, level='" + level + '\'' +
-                "\n, background='" + background + '\'' +
-                "\n, backgrounddir='" + backgrounddir + '\'' +
-                "\n, song='" + song + '\'' +
-                "\n, songdir='" + songdir + '\'' +
-                "\n, line_y=" + line_y +
-                "\n, line_speed=" + line_speed +
-                "\n, speed_change_with_bpm=" + speed_change_with_bpm +
-                "\n, speed_change_with_effect=" + speed_change_with_effect +
-                "\n, line_alpha=" + line_alpha +
-                "\n, line_x=" + line_x +
-                "\n, line_rotate=" + line_rotate +
-                "\n, illustrator='" + illustrator + '\'' +
-                "\n, note_flip=" + note_flip +
-                "\n, note_luck=" + note_luck +
-                "\n, mly_chart_path='" + mly_chart_path + '\'' +
-                "\n, lock=" + Arrays.toString(lock) +
-                "\n, tmp_folder='" + tmp_folder + '\'' +
-                '}';
+        return "轨道个数: " + column_number +
+                "\n音符总个数: " + note_number +
+                "谱师: " + charter +
+                "等级提示" + level +
+                "曲绘作者" + illustrator +
+                "谱面名称" + name +
+                "曲师" + composer +
+                "BPM: " + mainbpm[0] +
+                "偏移值: " + offset +
+                "基础流速: " + line_speed +
+                "线高度: " + line_y +
+                "LUCK: " + (note_luck ? "ON": "OFF") +
+                "FLIP: " + (note_flip ? "ON" : "OFF") +
+                "CONST: ";
     }
 
     public String getMly_chart_path() {
@@ -123,6 +108,14 @@ public class Config {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isNote_cst() {
+        return note_cst;
+    }
+
+    public void setNote_cst(boolean note_cst) {
+        this.note_cst = note_cst;
     }
 
     public List<ClassBPM> getBpm() {
