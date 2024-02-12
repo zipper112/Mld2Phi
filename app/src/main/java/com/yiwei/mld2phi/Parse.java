@@ -22,11 +22,6 @@ public class Parse {
         return res;
     }
 
-    public static String get_file_name(String path) {
-        String[] tmp = path.split(File.separator);
-        return tmp[tmp.length - 1];
-    }
-
     public static void ParseMC(Config config, JSONObject mcjson) throws Exception {
         config.setColumn_number(mcjson.getJSONObject("meta")
                 .getJSONObject("mode_ext")

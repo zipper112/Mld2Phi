@@ -1,4 +1,6 @@
 package com.yiwei.mld2phi;
+import android.net.Uri;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +36,7 @@ class ColumnPOS{
 
 public class Config {
 
-
+    private Uri bkg_uri, song_uri;
     private ColumnPOS colpos = new ColumnPOS();
     private Map<String, Object> mld_j;
     private String name = "NameNotFound";
@@ -66,8 +68,6 @@ public class Config {
 
     private String mly_chart_path = "";
 
-    public InputStream mld_char_stream, bkg_stream, song_stream;
-
 
     @Override
     public String toString() {
@@ -89,6 +89,22 @@ public class Config {
                 "\n线透明度" + line_alpha +
                 "\n横向偏移" + line_x +
                 "\n旋转角度" + line_rotate;
+    }
+
+    public Uri getBkg_uri() {
+        return bkg_uri;
+    }
+
+    public void setBkg_uri(Uri bkg_uri) {
+        this.bkg_uri = bkg_uri;
+    }
+
+    public Uri getSong_uri() {
+        return song_uri;
+    }
+
+    public void setSong_uri(Uri song_uri) {
+        this.song_uri = song_uri;
     }
 
     public String getMly_chart_path() {
