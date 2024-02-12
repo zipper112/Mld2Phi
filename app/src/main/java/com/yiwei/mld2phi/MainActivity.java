@@ -127,13 +127,10 @@ public  class MainActivity extends AppCompatActivity{
                 Uri uri = data.getData();
                 DocumentFile df = DocumentFile.fromSingleUri(this, uri);
                 String filename = df.getName();
-                System.out.println(filename);
 
                 if (filename == null || filename.equals("")) {
                     filename = Paths.get(uri.getPath()).getFileName().toString();
                 }
-//                String path = uri.getPath();
-//                String [] tmp = path.split(File.separator);
 
                 if (requestCode == MLD_REQUEST_MODE) {
 
@@ -149,24 +146,24 @@ public  class MainActivity extends AppCompatActivity{
                     Parse.ParseMC(config, mcjson);
                 } else if (requestCode == PIC_REQUEST_MODE) {
 
-//                    if (config.bkg_stream != null) {
-//                        config.bkg_stream.close();
-//                    }
+                    String lfn = filename.toLowerCase();
+                    if (!lfn.endsWith(".jpg") && !lfn.endsWith(".png") && !lfn.endsWith(".jpeg") && !lfn.endsWith(".bmp"))
+                        filename += ".jpg";
 
                     config.setBackground(filename);
                     picture.setText(filename);
                     config.setBkg_uri(uri);
-                    // config.bkg_stream = get_stream(uri);
+
                 } else if (requestCode == MUSIC_REQUEST_MODE) {
 
-//                    if (config.song_stream != null) {
-//                        config.song_stream.close();
-//                    }
+                    String lfn = filename.toLowerCase();
+                    if (!lfn.endsWith(".ogg") && !lfn.endsWith(".m4a") && !lfn.endsWith(".mp3") && !lfn.endsWith(".wav") && !lfn.endsWith(".flac") && !lfn.endsWith(".amr") && !lfn.endsWith(".acc"))
+                        filename += ".ogg";
 
                     config.setSong(filename);
                     music.setText(filename);
                     config.setSong_uri(uri);
-                    // config.song_stream = get_stream(uri);
+
                 } else if (requestCode == SAVE_TO_LOCAL) {
                     new Thread(() -> {
                         genTask.sendMessage(genTask.obtainMessage(START_GEN));
@@ -213,27 +210,6 @@ public  class MainActivity extends AppCompatActivity{
                 .setPositiveButton("确定", null)
                 .create().show();
     }
-
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//
-//        if (config.song_stream != null) {
-//            try {
-//                config.song_stream.close();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//
-//        if (config.bkg_stream != null) {
-//            try {
-//                config.bkg_stream.close();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
