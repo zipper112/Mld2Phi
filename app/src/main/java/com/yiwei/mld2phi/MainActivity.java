@@ -1,21 +1,29 @@
 package com.yiwei.mld2phi;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -24,25 +32,82 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.function.Consumer;
+
+import kotlin.Pair;
 
 
 public  class MainActivity extends AppCompatActivity{
-    Button mld, music, picture;
-    final int MLD_REQUEST_MODE = 11451419;
-    final int MUSIC_REQUEST_MODE = 99900011;
-    final int PIC_REQUEST_MODE = 123123434;
-    final int SAVE_TO_LOCAL = 6523458;
-
-    String template;
-
-    JSONObject mcjson;
-
+    private static final int START_GEN = 265841510;
+    private final int MLD_REQUEST_MODE = 11451419;
+    private final int MUSIC_REQUEST_MODE = 99900011;
+    private final int PIC_REQUEST_MODE = 123123434;
+    private final int SAVE_TO_LOCAL = 6523458;
+    private final int SUCCESS_GEN = 2565123;
+    private final int FAILURE_GEN = 2565124;
+    private Button mld, music, picture;
+    private String template;
+    private JSONObject mcjson;
     private int gen_count = 0;
-
     public static Config config = new Config();
+    private AlertDialog progressDialog;
 
-    private void openfile(int code){
+    private final Handler genTask = new Handler(Looper.getMainLooper()) {
+
+        @Override
+        public void handleMessage(@NonNull Message message) {
+
+
+            if (message.what == START_GEN) {
+
+                if (!progressDialog.isShowing()) {
+                    progressDialog.show();
+                    Pair<ProgressBar, TextView> pair = getViewFromDialog();
+                    ProgressBar bar = pair.getFirst();
+                    TextView content = pair.getSecond();
+                    content.setVisibility(View.GONE);
+                    bar.setVisibility(View.VISIBLE);
+                }
+
+            } else if (message.what == SUCCESS_GEN) {
+                if (progressDialog.isShowing()) {
+                    Pair<ProgressBar, TextView> pair = getViewFromDialog();
+                    ProgressBar bar = pair.getFirst();
+                    TextView content = pair.getSecond();
+
+                    bar.setVisibility(View.GONE);
+                    content.setText("转换成功");
+                    content.setVisibility(View.VISIBLE);
+                } else {
+                    toast("转换成功" + (++ gen_count == 1 ? "" : "x" + gen_count) );
+                }
+            } else if (message.what == FAILURE_GEN) {
+                if (progressDialog.isShowing()) {
+                    Pair<ProgressBar, TextView> pair = getViewFromDialog();
+                    ProgressBar bar = pair.getFirst();
+                    TextView content = pair.getSecond();
+
+                    bar.setVisibility(View.GONE);
+                    content.setText("转换失败, 原因: " + message.obj);
+                    content.setVisibility(View.VISIBLE);
+                } else {
+                    toast("转换失败, 原因: " + message.obj );
+                }
+            }
+        }
+    };
+
+    private Pair<ProgressBar, TextView> getViewFromDialog() {
+        ProgressBar bar = progressDialog.findViewById(R.id.prog_bar);
+        TextView content = progressDialog.findViewById(R.id.prog_msg);
+        assert bar != null;
+        assert content != null;
+
+        return new Pair<>(bar, content);
+    }
+
+    private void pickFile(int code){
         Intent i = new Intent(Intent.ACTION_GET_CONTENT);
         i.setType("*/*");
         i.addCategory(Intent.CATEGORY_OPENABLE);
@@ -57,16 +122,20 @@ public  class MainActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (data != null && resultCode == RESULT_OK){
+        if (data != null && data.getData() != null && resultCode == RESULT_OK){
             try {
                 Uri uri = data.getData();
-                String path = uri.getPath();
-                String [] tmp = path.split(File.separator);
+                DocumentFile df = DocumentFile.fromSingleUri(this, uri);
+                String filename = df.getName();
+
+                if (filename == null || filename.equals("")) {
+                    filename = Paths.get(uri.getPath()).getFileName().toString();
+                }
 
                 if (requestCode == MLD_REQUEST_MODE) {
 
-                    config.setMly_chart_path(path);
-                    mld.setText(tmp[tmp.length - 1]);
+                    config.setMly_chart_path(filename);
+                    mld.setText(filename);
 
                     InputStream is = get_stream(uri);
                     byte[] buffer = new byte[is.available()];
@@ -77,36 +146,51 @@ public  class MainActivity extends AppCompatActivity{
                     Parse.ParseMC(config, mcjson);
                 } else if (requestCode == PIC_REQUEST_MODE) {
 
-                    if (config.bkg_stream != null) {
-                        config.bkg_stream.close();
-                    }
+                    String lfn = filename.toLowerCase();
+                    if (!lfn.endsWith(".jpg") && !lfn.endsWith(".png") && !lfn.endsWith(".jpeg") && !lfn.endsWith(".bmp"))
+                        filename += ".jpg";
 
-                    config.setBackground(path);
-                    picture.setText(tmp[tmp.length - 1]);
-                    config.bkg_stream = get_stream(uri);
+                    config.setBackground(filename);
+                    picture.setText(filename);
+                    config.setBkg_uri(uri);
+
                 } else if (requestCode == MUSIC_REQUEST_MODE) {
 
-                    if (config.song_stream != null) {
-                        config.song_stream.close();
-                    }
+                    String lfn = filename.toLowerCase();
+                    if (!lfn.endsWith(".ogg") && !lfn.endsWith(".m4a") && !lfn.endsWith(".mp3") && !lfn.endsWith(".wav") && !lfn.endsWith(".flac") && !lfn.endsWith(".amr") && !lfn.endsWith(".acc"))
+                        filename += ".ogg";
 
-                    config.setSong(path);
-                    music.setText(tmp[tmp.length - 1]);
-                    config.song_stream = get_stream(uri);
+                    config.setSong(filename);
+                    music.setText(filename);
+                    config.setSong_uri(uri);
+
                 } else if (requestCode == SAVE_TO_LOCAL) {
+                    new Thread(() -> {
+                        genTask.sendMessage(genTask.obtainMessage(START_GEN));
+                        try {
+                            JSONObject phi = Core.generate(template, config, mcjson);
+                            byte[] zip = Core.createZipBytes(this, phi, config);
 
-                    JSONObject phi = Core.generate(template, config, mcjson);
-                    byte[] zip = Core.createZipBytes(phi, config);
+                            OutputStream outputStream = getContentResolver().openOutputStream(uri);
+                            if (outputStream != null) {
+                                outputStream.write(zip);
+                                outputStream.close();
+                            }
 
-                    OutputStream outputStream = getContentResolver().openOutputStream(uri);
-                    if (outputStream != null) {
-                        outputStream.write(zip);
-                        outputStream.close();
-                    }
+                            Message message = genTask.obtainMessage();
+                            message.what = SUCCESS_GEN;
+                            genTask.sendMessage(message);
 
-                    toast("生成成功" + (++ gen_count == 1 ? "" : "x" + gen_count) );
+                        } catch (Exception e) {
+                            Message message = genTask.obtainMessage();
+                            message.what = FAILURE_GEN;
+                            message.obj = e;
+                            genTask.sendMessage(message);
+                        }
+                    }).start();
                 }
-
+            } catch (JSONException e) {
+                errAlert("选择的文件不是标准谱面, 或者解析出错, 详细信息: " + e);
             } catch (Exception e){
                 errAlert(e.toString());
             }
@@ -128,30 +212,16 @@ public  class MainActivity extends AppCompatActivity{
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        if (config.song_stream != null) {
-            try {
-                config.song_stream.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        if (config.bkg_stream != null) {
-            try {
-                config.bkg_stream.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        progressDialog = new AlertDialog.Builder(this)
+                .setTitle("处理信息")
+                .setPositiveButton("杂鱼", null)
+                .setView(R.layout.progess_dialog_view)
+                .create();
+
         try {
             template = getTemplate();
             bind();
@@ -191,9 +261,9 @@ public  class MainActivity extends AppCompatActivity{
         mld = findViewById(R.id.mly_bt);
         picture = findViewById(R.id.picture_bt);
         music = findViewById(R.id.music_bt);
-        mld.setOnClickListener(v -> openfile(MLD_REQUEST_MODE));
-        picture.setOnClickListener(v -> openfile(PIC_REQUEST_MODE));
-        music.setOnClickListener(v -> openfile(MUSIC_REQUEST_MODE));
+        mld.setOnClickListener(v -> pickFile(MLD_REQUEST_MODE));
+        picture.setOnClickListener(v -> pickFile(PIC_REQUEST_MODE));
+        music.setOnClickListener(v -> pickFile(MUSIC_REQUEST_MODE));
 
         Button start_gen = findViewById(R.id.start_gen);
         start_gen.setOnClickListener(v -> {
@@ -217,7 +287,7 @@ public  class MainActivity extends AppCompatActivity{
         startActivityForResult(intent, SAVE_TO_LOCAL);
     }
 
-    public String getTemplate() throws IOException {
+    private String getTemplate() throws IOException {
         AssetManager am = this.getAssets();
         InputStream is = am.open("template.json");
         byte [] buffer = new byte[is.available()];
@@ -256,8 +326,8 @@ public  class MainActivity extends AppCompatActivity{
         });
     }
 
-    private void update_config(){
+    private void update_config() {
         TextView tv = findViewById(R.id.information);
-        tv.setText( "Original: IambicCave, ported by Zipper112(⑨) & whiterasbk\n\n" + "信息: \n" + config.toString());
+        tv.setText("Original: IambicCave, ported by Zipper112(⑨) & whiterasbk\n\n" + "信息: \n" + config.toString());
     }
 }

@@ -1,11 +1,14 @@
 package com.yiwei.mld2phi;
 
+import android.content.Context;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -56,14 +59,14 @@ public class Core {
     public static JSONObject generate(String template, Config config, JSONObject mcsjson) throws JSONException {
         JSONObject phijson = new JSONObject(template);
         JSONObject meta = phijson.getJSONObject("META");
-        meta.put("background", Parse.get_file_name(config.getBackground()));
+        meta.put("background", config.getBackground());
         meta.put("charter", config.getCharter());
         meta.put("composer", config.getComposer());
         meta.put("id", config.getMalodyid());
         meta.put("level", config.getLevel());
         meta.put("name", config.getName());
         meta.put("offset", config.getOffset());
-        meta.put("song", Parse.get_file_name(config.getSong())); // TODO: 获取文件名
+        meta.put("song", config.getSong());
 
         JSONObject bpmlist = phijson.getJSONArray("BPMList").getJSONObject(0);
         bpmlist.put("bpm", config.getBpm().get(0).data);
@@ -136,12 +139,12 @@ public class Core {
                 if (speed_list.length() != 0 && time_to_float(t_bpm.get(cur1 - 1)) == time_to_float(t_scroll.get(cur2))){
                     speed_list.remove(speed_list.length() - 1);
                 }
-                float new_speed = (float) config.getLine_speed() / config.getMainbpm()[0] * v_bpm.get(cur1 - 1) * v_scroll.get(cur2);
+                float new_speed = config.getLine_speed() / config.getMainbpm()[0] * v_bpm.get(cur1 - 1) * v_scroll.get(cur2);
                 JSONArray new_time = t_scroll.get(cur2);
                 speed_list.put(format_speed(new_speed, new_time));
                 cur2 += 1;
             }
-            float new_speed = (float) config.getLine_speed() / config.getMainbpm()[0] * v_bpm.get(cur1) * v_scroll.get(cur2 - 1);
+            float new_speed = config.getLine_speed() / config.getMainbpm()[0] * v_bpm.get(cur1) * v_scroll.get(cur2 - 1);
             JSONArray new_time = t_bpm.get(cur1);
             speed_list.put(format_speed(new_speed, new_time));
         }
@@ -150,7 +153,7 @@ public class Core {
             if(speed_list.length() != 0 && time_to_float(t_bpm.get(lim1 - 1)) == time_to_float(t_scroll.get(cur2))){
                 speed_list.remove(speed_list.length() - 1);
             }
-            float new_speed = (float) config.getLine_speed() / config.getMainbpm()[0] * v_bpm.get(lim1 - 1) * v_scroll.get(cur2);
+            float new_speed = config.getLine_speed() / config.getMainbpm()[0] * v_bpm.get(lim1 - 1) * v_scroll.get(cur2);
             JSONArray new_time = t_scroll.get(cur2);
             speed_list.put(format_speed(new_speed, new_time));
             cur2 += 1;
@@ -230,13 +233,13 @@ public class Core {
     jpg: # 背景
      */
 
-    public static byte[] createZipBytes(JSONObject phijson, Config config) throws IOException {
+    public static byte[] createZipBytes(Context ctx, JSONObject phijson, Config config) throws IOException {
 
         String info = "Chart,Music,Image,Name,Artist,Level,Illustrator,Charter\n";
         StringJoiner params = new StringJoiner(",");
-        params.add(Parse.get_file_name(config.getName() + ".json"));
-        params.add(Parse.get_file_name(config.getSong()));
-        params.add(Parse.get_file_name(config.getBackground()));
+        params.add(config.getName() + ".json");
+        params.add(config.getSong());
+        params.add(config.getBackground());
         params.add(config.getName());
         params.add(config.getComposer());
         params.add(config.getLevel());
@@ -246,7 +249,6 @@ public class Core {
 
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
         ZipOutputStream phistream = new ZipOutputStream(baos);
 
 
@@ -258,17 +260,23 @@ public class Core {
         phistream.write(phijson.toString().getBytes(StandardCharsets.UTF_8));
         phistream.closeEntry();
 
-        byte[] buf1 = new byte[config.bkg_stream.available()];
-        config.bkg_stream.read(buf1);
-        phistream.putNextEntry(new ZipEntry(Parse.get_file_name(config.getBackground())));
+
+        InputStream bkgis = ctx.getContentResolver().openInputStream(config.getBkg_uri());
+        byte[] buf1 = new byte[bkgis.available()];
+        bkgis.read(buf1);
+        phistream.putNextEntry(new ZipEntry(config.getBackground()));
         phistream.write(buf1);
+        bkgis.close();
         phistream.closeEntry();
 
-        byte[] buf2 = new byte[config.song_stream.available()];
-        config.song_stream.read(buf2);
-        phistream.putNextEntry(new ZipEntry(Parse.get_file_name(config.getSong())));
+        InputStream songis = ctx.getContentResolver().openInputStream(config.getSong_uri());
+        byte[] buf2 = new byte[songis.available()];
+        songis.read(buf2);
+        phistream.putNextEntry(new ZipEntry(config.getSong()));
         phistream.write(buf2);
+        songis.close();
         phistream.closeEntry();
+
         phistream.close();
 
         byte[] ret = baos.toByteArray();
