@@ -104,9 +104,9 @@ public class Parse {
 
         JSONObject spnote = note.getJSONObject(config.getSpecial_note());
         if (spnote.has("offset")) {
-            config.setOffset((float) spnote.getDouble("offset"));
+            config.setOffset(spnote.getInt("offset"));
         } else {
-            config.setOffset(0f);
+            config.setOffset(0);
         }
         config.setOffset(-config.getOffset());
 

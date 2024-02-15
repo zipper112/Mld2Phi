@@ -166,7 +166,7 @@ public  class MainActivity extends AppCompatActivity{
         addTextChangeListener(R.id.basic_speed, s -> config.setLine_speed(Float.parseFloat(s.toString())));
         addTextChangeListener(R.id.line_height, s -> config.setLine_y(Float.parseFloat(s.toString())));
         addTextChangeListener(R.id.line_alpha, s -> config.setLine_alpha(Integer.parseInt(s.toString())));
-        addTextChangeListener(R.id.x_shift, s -> config.setOffset(Float.parseFloat(s.toString())));
+        addTextChangeListener(R.id.x_shift, s -> config.setLine_x(Float.parseFloat(s.toString())));
         addTextChangeListener(R.id.rotation_angle, s -> config.setLine_rotate(Float.parseFloat(s.toString())));
 
         CheckBox cst = findViewById(R.id.cst);

@@ -40,7 +40,7 @@ public class Config {
     private String name = "NameNotFound";
     private List<ClassBPM> bpm = new ArrayList<>();
     private float [] mainbpm = new float[]{0f, 0f};
-    private float offset = 0f;
+    private int offset = 0;
     private int note_number = 0;
     private int special_note = 0;
     private int malodyid = 0;
@@ -138,11 +138,11 @@ public class Config {
         this.mainbpm = mainbpm;
     }
 
-    public float getOffset() {
+    public int getOffset() {
         return offset;
     }
 
-    public void setOffset(float offset) {
+    public void setOffset(int offset) {
         this.offset = offset;
     }
 
