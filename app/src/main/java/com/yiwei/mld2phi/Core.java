@@ -98,7 +98,7 @@ public class Core {
 
 
         for(int i = 1; i < mcsjson.getJSONArray("time").length(); i++){
-            String this_bpm = "{\"bpm\": " + config.getBpm().get(i).data + ", \"startTime\": [" + config.getBpm().get(i).time[0] + ", " + config.getBpm().get(i).time[1] + ", " + config.getBpm().get(i).time[2] + "}";
+            String this_bpm = "{\"bpm\": " + config.getBpm().get(i).data + ", \"startTime\": [" + config.getBpm().get(i).time[0] + ", " + config.getBpm().get(i).time[1] + ", " + config.getBpm().get(i).time[2] + "]}";
             phijson.getJSONArray("BPMList").put(new JSONObject(this_bpm));
         }
 
